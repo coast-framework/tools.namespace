@@ -80,7 +80,7 @@
     (when (find-ns ns-name)
       (alias alias-sym ns-name))))
 
-(defn- do-refresh [scan-opts after-sym]
+(defn- do-refresh [scan-opts after-sym after-args]
   (when after-sym
     (assert (symbol? after-sym) ":after value must be a symbol")
     (assert (namespace after-sym)
@@ -97,7 +97,7 @@
       (if (= :ok result)
         (if after-sym
           (if-let [after (ns-resolve *ns* after-sym)]
-            (after)
+            (apply after after-args)
             (throw (Exception.
                     (str "Cannot resolve :after symbol " after-sym))))
           result)
@@ -141,8 +141,8 @@
                symbol will be resolved *after* all namespaces have
                been reloaded."
   [& options]
-  (let [{:keys [after]} options]
-    (do-refresh {:platform find/clj} after)))
+  (let [{:keys [after after-args]} options]
+    (do-refresh {:platform find/clj} after after-args)))
 
 (defn refresh-all
   "Scans source code directories for all Clojure source files and
@@ -158,8 +158,8 @@
                symbol will be resolved *after* all namespaces have
                been reloaded."
   [& options]
-  (let [{:keys [after]} options]
-    (do-refresh {:platform find/clj :add-all? true} after)))
+  (let [{:keys [after after-args]} options]
+    (do-refresh {:platform find/clj :add-all? true} after after-args)))
 
 (defn set-refresh-dirs
   "Sets the directories which are scanned by 'refresh'. Supports the
